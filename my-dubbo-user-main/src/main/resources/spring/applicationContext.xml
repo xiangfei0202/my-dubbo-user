@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+    <context:property-placeholder location="classpath*:*.properties" ignore-unresolvable="true" />
+    <context:component-scan base-package="com.king.service.*"/>
+
+    <aop:aspectj-autoproxy/>
+
+    <!-- druid setting -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+          init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${ds.druid.driver}" />
+        <property name="url" value="${ds.druid.url}" />
+        <property name="username" value="${ds.druid.username}" />
+        <property name="password" value="${ds.druid.password}" />
+        <property name="initialSize" value="${ds.druid.initialSize}" />
+        <property name="minIdle" value="${ds.druid.minIdle}" />
+        <property name="maxActive" value="${ds.druid.maxActive}" />
+        <property name="maxWait" value="${ds.druid.maxWait}" />
+        <property name="timeBetweenEvictionRunsMillis" value="${ds.druid.timeBetweenEvictionRunsMillis}" />
+        <property name="minEvictableIdleTimeMillis" value="${ds.druid.minEvictableIdleTimeMillis}" />
+        <property name="filters" value="${ds.druid.filters}" />
+        <property name="proxyFilters">
+            <list>
+                <ref bean="stat-filter" />
+            </list>
+        </property>
+    </bean>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="configLocation" value="classpath:mappers/mybatis-config.xml"/>
+        <property name="dataSource" ref="dataSource"/>
+        <property name="mapperLocations" value="classpath*:mappers/*.map.xml"/>
+        <property name="plugins">
+            <list>
+                <ref bean="paginationInterceptor"/>
+            </list>
+        </property>
+    </bean>
+
+
+    <bean id="paginationInterceptor" class="com.github.miemiedev.mybatis.paginator.OffsetLimitInterceptor">
+        <property name="dialect" ref="dialectClass"/>
+    </bean>
+
+    <bean id="dialectClass" class="com.github.miemiedev.mybatis.paginator.dialect.MySQLDialect"/>
+
+
+    <!-- ================================== TRANSACTION DEFINITIONS ================================== -->
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="find*" propagation="SUPPORTS" read-only="true" />
+            <tx:method name="create*" propagation="REQUIRED"/>
+            <tx:method name="update*" propagation="REQUIRED"/>
+            <tx:method name="delete*" propagation="REQUIRED" />
+            <tx:method name="batch*" propagation="REQUIRED"/>
+            <tx:method name="reset*" propagation="REQUIRED" />
+            <tx:method name="publish*" propagation="REQUIRED" />
+            <tx:method name="submit*" propagation="SUPPORTS" />
+        </tx:attributes>
+    </tx:advice>
+    <!-- execute after Thread -->
+    <bean id="threadExecuteAfterAop" class="com.king.aop.ThreadExecuteAfterAop"/>
+    <aop:config>
+        <aop:pointcut id="afterThreadMethods" expression="execution(* com.king.service.classroominteraction.impl.StudentExerciseServiceImpl.updateCorrectExercisesForMq_V2(..))"/>
+        <aop:aspect ref="threadExecuteAfterAop">
+            <aop:after method="after" pointcut-ref="afterThreadMethods"></aop:after>
+        </aop:aspect>
+    </aop:config>
+    <aop:config>
+        <aop:pointcut id="serviceMethods" expression="execution(* com.king.service..*.*(..))"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethods"/>
+    </aop:config>
+
+
+    <!-- stat_filter sql监控 -->
+    <bean id="stat-filter" class="com.alibaba.druid.filter.stat.StatFilter">
+        <property name="slowSqlMillis" value="10000"/>
+        <property name="logSlowSql" value="true"/>
+    </bean>
+
+</beans>

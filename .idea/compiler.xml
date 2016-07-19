@@ -23,15 +23,27 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="my-dubbo-consumer-user-api" />
-        <module name="my-dubbo-user-api" />
+      </profile>
+      <profile default="false" name="Annotation profile for my-dubbo-user-main" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
         <module name="my-dubbo-user-main" />
+      </profile>
+      <profile default="false" name="Annotation profile for my-dubbo-user-api" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="my-dubbo-user-api" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="my-dubbo-consumer-user-api" target="1.5" />
       <module name="my-dubbo-user" target="1.5" />
-      <module name="my-dubbo-user-api" target="1.5" />
-      <module name="my-dubbo-user-main" target="1.5" />
+      <module name="my-dubbo-user-api" target="1.7" />
+      <module name="my-dubbo-user-main" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>
