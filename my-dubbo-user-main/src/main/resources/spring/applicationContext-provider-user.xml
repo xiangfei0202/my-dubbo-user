@@ -15,7 +15,7 @@
 
     <!-- question service-->
     <dubbo:service
-            interface="com.king.service.classroominteraction.StudentExerciseService"
-            protocol="dubbo" version="${service.dubbo.praxis.version}" timeout="5000" retries="0"
-            ref="interaction.studentExerciseService"/>
+            interface="com.king.service.FirstService"
+            protocol="dubbo" version="${service.dubbo.user.version}" timeout="5000" retries="0"
+            ref="firstService"/>
 </beans>
